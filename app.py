@@ -17,7 +17,7 @@ def home():
 
 # API to upload resumes
 # API to upload multiple resumes
-@app.route('/upload_resume', methods=['POST'])
+@app.route('/upload_resumes', methods=['POST'])
 def upload_resume():
     files = request.files.getlist('resumes')  # Get the list of uploaded files
 
@@ -30,7 +30,7 @@ def upload_resume():
     return jsonify({"message": "Resumes uploaded successfully!"}), 200
 
 # API to delete an uploaded resume
-@app.route('/delete_resume', methods=['DELETE'])
+@app.route('/delete_resumes', methods=['DELETE'])
 def delete_resume():
     file_names = request.json.get("resumes")
     for file_name in file_names:
@@ -50,7 +50,7 @@ def delete_all_resumes():
     return jsonify({"message": "All Resumes deleted successfully!"}), 200
 
 # API to create a job description with separate categories
-@app.route('/create_JD', methods=['POST'])
+@app.route('/create_JDs', methods=['POST'])
 def create_job_description():
     new_job_description = request.json
 
@@ -61,7 +61,7 @@ def create_job_description():
     return jsonify({"message": "Job descriptions created successfully!"}), 201
 
 # API to create tags with separate categories
-@app.route('/create_tag', methods=['POST'])
+@app.route('/create_tags', methods=['POST'])
 def create_tag():
     new_tag = request.json
     # Iterate through each category and insert separately
@@ -70,7 +70,7 @@ def create_tag():
     return jsonify({"message": "Tags added successfully"}), 201
 
 # API to update a job description
-@app.route('/update_JD', methods=['PUT'])
+@app.route('/update_JDs', methods=['PUT'])
 def update_job_description():
     updated_job_description = request.json
     job_title = updated_job_description.get("job_title")
@@ -81,15 +81,137 @@ def update_job_description():
         return jsonify({"error": "Job title not found!"}), 404
     
 # API to update a tag
-@app.route('/update_tag', methods=['PUT'])
+@app.route('/update_subtags', methods=['PUT'])
 def update_tag():
-    updated_tag = request.json
-    tag_name = updated_tag.get("tag_name")
-    result = tags_collection.update_one({"tag_name": tag_name}, {"$set": updated_tag})
+    old_tag = updated_tag.get("filter")
+    updated_tag = request.json.get('update')
+    result = tags_collection.update_one(old_tag, {"$set": updated_tag})
     if result.matched_count:
         return jsonify({"message": "Tag updated successfully!"}), 200
     else:
         return jsonify({"error": "Tag not found!"}), 404
+
+# API to append multiple JDs to a category
+@app.route('/sub_jds', methods=['POST'])
+def append_jds():
+    request_data = request.json
+    category = request_data.get("category")
+    new_jds = request_data.get("jds")  # Expecting a list of JDs
+
+    # Find the JD category
+    jd_entry = jd_collection.find_one({"category": category})
+
+    if jd_entry:
+        # Append new JDs to the data list
+        existing_jds = jd_entry["data"]
+
+        # Add only those JDs which are not already present
+        for jd in new_jds:
+            if jd not in existing_jds:
+                existing_jds.append(jd)
+
+        # Update the database
+        jd_collection.update_one(
+            {"category": category},
+            {"$set": {"data": existing_jds}}
+        )
+        return jsonify({"message": "JDs appended successfully!"}), 200
+    else:
+        return jsonify({"error": "Category not found!"}), 404
+
+
+# API to append multiple tags to a subcategory
+@app.route('/sub_tags', methods=['POST'])
+def append_tags():
+    request_data = request.json
+    category = request_data.get("category")
+    subcategory = request_data.get("subcategory")
+    new_tags = request_data.get("tags")  # Expecting a list of tags
+
+    # Find the category
+    tag_entry = tags_collection.find_one({"category": category})
+
+    if tag_entry:
+        # Append the new tags to the subcategory's tag list
+        if subcategory in tag_entry["data"]:
+            existing_tags = tag_entry["data"][subcategory]
+
+            # Add only those tags which are not already present
+            for tag in new_tags:
+                if tag not in existing_tags:
+                    existing_tags.append(tag)
+
+            # Update the database
+            tags_collection.update_one(
+                {"category": category},
+                {"$set": {f"data.{subcategory}": existing_tags}}
+            )
+            return jsonify({"message": "Tags appended successfully!"}), 200
+        else:
+            return jsonify({"error": "Subcategory not found!"}), 404
+    else:
+        return jsonify({"error": "Category not found!"}), 404
+
+
+# API to remove multiple JDs from a category
+@app.route('/sub_jds', methods=['DELETE'])
+def remove_jds():
+    request_data = request.json
+    category = request_data.get("category")
+    jds_to_remove = request_data.get("jds")  # Expecting a list of JDs
+
+    # Find the JD category
+    jd_entry = jd_collection.find_one({"category": category})
+
+    if jd_entry:
+        # Check if the JDs exist in the category
+        existing_jds = jd_entry["data"]
+
+        # Remove only those JDs which are present
+        for jd in jds_to_remove:
+            if jd in existing_jds:
+                existing_jds.remove(jd)
+
+        # Update the database
+        jd_collection.update_one(
+            {"category": category},
+            {"$set": {"data": existing_jds}}
+        )
+        return jsonify({"message": "JDs removed successfully!"}), 200
+    else:
+        return jsonify({"error": "Category not found!"}), 404
+
+# API to remove multiple tags from a subcategory
+@app.route('/sub_tags', methods=['DELETE'])
+def remove_tags():
+    request_data = request.json
+    category = request_data.get("category")
+    subcategory = request_data.get("subcategory")
+    tags_to_remove = request_data.get("tags")  # Expecting a list of tags
+
+    # Find the category
+    tag_entry = tags_collection.find_one({"category": category})
+
+    if tag_entry:
+        # Check if the subcategory exists
+        if subcategory in tag_entry["data"]:
+            existing_tags = tag_entry["data"][subcategory]
+
+            # Remove only those tags which are present
+            for tag in tags_to_remove:
+                if tag in existing_tags:
+                    existing_tags.remove(tag)
+
+            # Update the database
+            tags_collection.update_one(
+                {"category": category},
+                {"$set": {f"data.{subcategory}": existing_tags}}
+            )
+            return jsonify({"message": "Tags removed successfully!"}), 200
+        else:
+            return jsonify({"error": "Subcategory not found!"}), 404
+    else:
+        return jsonify({"error": "Category not found!"}), 404
 
 
 # API to delete a job description
