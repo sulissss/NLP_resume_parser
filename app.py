@@ -49,14 +49,25 @@ def delete_all_resumes():
     os.makedirs(EMPLOYEE_FOLDER)  # Recreate the directory
     return jsonify({"message": "All Resumes deleted successfully!"}), 200
 
-# API to create a job description
+# API to create a job description with separate categories
 @app.route('/create_JD', methods=['POST'])
 def create_job_description():
     new_job_description = request.json
-    if not isinstance(new_job_description, list):
-        new_job_description = [new_job_description]
-    jd_collection.insert_many(new_job_description)  # Insert into MongoDB
-    return jsonify({"message": "Job description created successfully!"}), 201
+
+    # Iterate through each category and insert separately
+    for category, keywords in new_job_description.items():        
+        jd_collection.insert_one({"category": category, "data": keywords})  # Insert each category as a separate document
+
+    return jsonify({"message": "Job descriptions created successfully!"}), 201
+
+# API to create tags with separate categories
+@app.route('/create_tag', methods=['POST'])
+def create_tag():
+    new_tag = request.json
+    # Iterate through each category and insert separately
+    for category, tags in new_tag.items():
+        tags_collection.insert_one({"category": category, "data": tags})
+    return jsonify({"message": "Tags added successfully"}), 201
 
 # API to update a job description
 @app.route('/update_JD', methods=['PUT'])
@@ -68,26 +79,7 @@ def update_job_description():
         return jsonify({"message": "Job description updated successfully!"}), 200
     else:
         return jsonify({"error": "Job title not found!"}), 404
-
-# API to delete a job description
-@app.route('/delete_JD', methods=['DELETE'])
-def delete_job_description():
-    job_title = request.json.get("job_title")
-    result = jd_collection.delete_one({"job_title": job_title})
-    if result.deleted_count:
-        return jsonify({"message": "Job description deleted successfully!"}), 200
-    else:
-        return jsonify({"error": "Job title not found!"}), 404
-
-# API to create a tag
-@app.route('/create_tag', methods=['POST'])
-def create_tag():
-    new_tag = request.json
-    if not isinstance(new_tag, list):
-        new_tag = [new_tag]
-    tags_collection.insert_many(new_tag)  # Insert into MongoDB
-    return jsonify({"message": "Tag created successfully!"}), 201
-
+    
 # API to update a tag
 @app.route('/update_tag', methods=['PUT'])
 def update_tag():
@@ -99,6 +91,18 @@ def update_tag():
     else:
         return jsonify({"error": "Tag not found!"}), 404
 
+
+# API to delete a job description
+@app.route('/delete_JD', methods=['DELETE'])
+def delete_job_description():
+    job_title = request.json.get("job_title")
+    result = jd_collection.delete_one({"job_title": job_title})
+    if result.deleted_count:
+        return jsonify({"message": "Job description deleted successfully!"}), 200
+    else:
+        return jsonify({"error": "Job title not found!"}), 404
+
+## FIX THIS TING
 # API to delete a tag
 @app.route('/delete_tag', methods=['DELETE'])
 def delete_tag():
@@ -113,13 +117,13 @@ def delete_tag():
 @app.route('/get_all_JDs', methods=['GET'])
 def get_job_descriptions():
     job_descriptions = list(jd_collection.find({}, {"_id": 0}))  # Get all JDs without MongoDB's internal _id field
-    return jsonify({"job_descriptions": job_descriptions[0]})
+    return jsonify({"JDs": job_descriptions})
 
 # API to get all tags
 @app.route('/get_all_tags', methods=['GET'])
 def get_tags():
     tags = list(tags_collection.find({}, {"_id": 0}))  # Get all tags without MongoDB's internal _id field
-    return jsonify({"tags": tags[0]})
+    return jsonify({"tags": tags})
 
 # API to delete all job descriptions
 @app.route('/delete_all_JDs', methods=['DELETE'])
@@ -132,6 +136,7 @@ def delete_all_job_descriptions():
 def delete_all_tags():
     tags_collection.delete_many({})  # Remove all documents in the tags collection
     return jsonify({"message": "All tags deleted successfully!"}), 200
+
 
 @app.route('/get_resume_scores', methods=['GET'])
 def get_resume_scores():
