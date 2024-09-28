@@ -1,0 +1,182 @@
+{
+  "Education": {
+      "Undergraduate Education": [
+          "Bachelor",
+          "Bachelor's Degree",
+          "Undergraduate Degree",
+          "Higher Education",
+          "BA",
+          "BSc",
+          "BS",
+          "Bachelors"
+      ],
+      "Graduate Education": [
+          "Master's Degree",
+          "Graduate Degree",
+          "Postgraduate Education",
+          "MA",
+          "MSc",
+          "Masters"
+      ],
+      "Doctorate": [
+          "PhD",
+          "Doctorate",
+          "Doctor of Philosophy",
+          "Advanced Degree",
+          "DPhil",
+          "DBA"
+      ],
+      "General Degree": [
+          "Degree",
+          "Academic Qualification",
+          "Certification",
+          "Degree Holder",
+          "Diploma"
+      ]
+  },
+  "Work Experience": {
+      "Software Engineering": [
+          "Software Engineer",
+          "Full Stack Developer",
+          "Backend Developer",
+          "Frontend Developer",
+          "DevOps Engineer",
+          "Programmer"
+      ],
+      "Data Science": [
+          "Data Scientist",
+          "Data Analyst",
+          "Business Intelligence Analyst",
+          "Data Engineer",
+          "Machine Learning Engineer"
+      ],
+      "Project Management": [
+          "Project Manager",
+          "Product Manager",
+          "Scrum Master",
+          "Program Manager",
+          "Agile Coach"
+      ],
+      "Cybersecurity": [
+          "Security Analyst",
+          "Network Security Engineer",
+          "Cybersecurity Specialist",
+          "Information Security Analyst"
+      ]
+  },
+  "Skills": {
+      "Programming Languages": [
+          "Python",
+          "Java",
+          "C++",
+          "JavaScript",
+          "Ruby",
+          "PHP",
+          "Go",
+          "Swift"
+      ],
+      "Web Development": [
+          "HTML",
+          "CSS",
+          "React",
+          "Node.js",
+          "Django",
+          "Angular",
+          "Vue.js"
+      ],
+      "Data Science": [
+          "Machine Learning",
+          "Data Analysis",
+          "Statistics",
+          "SQL",
+          "R",
+          "Predictive Analytics"
+      ],
+      "Cloud Computing": [
+          "AWS",
+          "Azure",
+          "Google Cloud",
+          "Docker",
+          "Kubernetes",
+          "Cloud Architect"
+      ],
+      "Soft Skills": [
+          "Communication",
+          "Teamwork",
+          "Problem Solving",
+          "Adaptability",
+          "Leadership",
+          "Collaboration"
+      ]
+  },
+  "Certifications": {
+      "Technical Certifications": [
+          "AWS Certified Solutions Architect",
+          "PMP",
+          "Cisco Certified Network Associate",
+          "Google Cloud Certified",
+          "CompTIA Security+",
+          "Microsoft Certified: Azure Solutions Architect Expert"
+      ],
+      "Industry Certifications": [
+          "Certified Public Accountant (CPA)",
+          "Certified Financial Planner (CFP)",
+          "Six Sigma Green Belt",
+          "Project Management Professional (PMP)",
+          "Chartered Financial Analyst (CFA)"
+      ]
+  },
+  "Projects": {
+      "Development Projects": [
+          "developed",
+          "Project Experience",
+          "Development Skills",
+          "Portfolio",
+          "Application Development"
+      ],
+      "Design Projects": [
+          "designed",
+          "Design Skills",
+          "Creative Experience",
+          "Project Management",
+          "User Experience Design"
+      ],
+      "General Projects": [
+          "project",
+          "Project Work",
+          "Practical Experience",
+          "Portfolio",
+          "Case Studies"
+      ],
+      "Software Projects": [
+          "software",
+          "Software Development",
+          "Technical Projects",
+          "Programming Projects",
+          "Web Applications"
+      ]
+  },
+  "Additional Info": {
+      "Volunteer Experience": [
+          "volunteer",
+          "Volunteer Experience",
+          "Community Service",
+          "Non-Profit Work",
+          "Charity Work"
+      ],
+      "Language Proficiency": [
+          "languages spoken",
+          "Language Skills",
+          "Multilingual",
+          "Communication Skills",
+          "Bilingual"
+      ],
+      "Bilingual Skills": [
+          "bilingual",
+          "Language Proficiency",
+          "Communication Skills",
+          "Multilingual",
+          "Language Fluency"
+      ]
+  }
+}
