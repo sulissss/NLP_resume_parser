@@ -147,5 +147,6 @@ def get_resume_scores():
         return jsonify({"message": rank_resumes(file_paths, job_description, weights, tags)})
 
 
+
 if __name__ == '__main__':
     app.run(port=5001, debug=True)
