@@ -3,19 +3,13 @@ from flask_cors import CORS
 import os
 import shutil
 import json
-from nlp_spacy import rank_resumes
-from pymongo import MongoClient
+from nlp_spacy import rank_resumes, jd_collection, tags_collection
+
 
 EMPLOYEE_FOLDER = "employees"
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
-
-# MongoDB setup
-client = MongoClient("mongodb://localhost:27017/")
-db = client["resume_management"]  # Database
-jd_collection = db["job_descriptions"]  # Collection for Job Descriptions
-tags_collection = db["tags"]  # Collection for Tags
 
 @app.route('/', methods=['GET'])
 def home():
@@ -119,13 +113,13 @@ def delete_tag():
 @app.route('/get_all_JDs', methods=['GET'])
 def get_job_descriptions():
     job_descriptions = list(jd_collection.find({}, {"_id": 0}))  # Get all JDs without MongoDB's internal _id field
-    return jsonify({"job_descriptions": job_descriptions})
+    return jsonify({"job_descriptions": job_descriptions[0]})
 
 # API to get all tags
 @app.route('/get_all_tags', methods=['GET'])
 def get_tags():
     tags = list(tags_collection.find({}, {"_id": 0}))  # Get all tags without MongoDB's internal _id field
-    return jsonify({"tags": tags})
+    return jsonify({"tags": tags[0]})
 
 # API to delete all job descriptions
 @app.route('/delete_all_JDs', methods=['DELETE'])
@@ -150,14 +144,10 @@ def get_resume_scores():
     if not file_paths:
         return jsonify({"error": "No resumes uploaded"})
     else:
-        with open('JD.json', 'r') as f:
-            job_description = json.load(f)
         with open('weights.json', 'r') as f:
             weights = json.load(f)
-        with open('tags.json', 'r') as f:
-            tags = json.load(f)
 
-        return jsonify({"message": rank_resumes(file_paths, job_description, weights, tags)})
+        return jsonify({"message": rank_resumes(file_paths, weights)})
 
 
 if __name__ == '__main__':
