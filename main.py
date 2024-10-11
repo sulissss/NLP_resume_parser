@@ -4,6 +4,7 @@ import os
 import spacy
 from utils import parse_resume
 from pymongo import MongoClient
+from llm import get_JD_tags_and_reqs, is_fit_screener
 
 # MongoDB setup
 client = MongoClient("mongodb://localhost:27017/")
@@ -66,3 +67,9 @@ def rank_resumes(resume_paths, weights):
         score = calculate_score(resume_text, weights)
         ranked_resumes.append((resume_path, score))
     return ranked_resumes
+
+def add_JD_tags_and_reqs(JD_path):
+    JD_text = parse_resume(JD_path)
+    tags_and_reqs = get_JD_tags_and_reqs(JD_text)
+    # add tags_and_reqs['tags'] to the tags collection
+    # add tags_and_reqs['requirements'] as a new document in the JD collection
