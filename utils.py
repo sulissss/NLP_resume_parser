@@ -1,6 +1,10 @@
 import re
 import docx2txt
 import PyPDF2
+import os
+# from spire.doc import *
+# from spire.doc.common import *
+
 
 # Regex to extract years
 def extract_years(text):
@@ -28,8 +32,24 @@ def extract_text_from_pdf(file_path):
             text += page.extract_text()
     return text
 
+
 def extract_text_from_docx(file_path):
     return docx2txt.process(file_path)
+
+# def extract_text_from_doc(file_path):
+#     # Create an object of the Document class
+#     document = Document()
+#     # Load a Word DOC file
+#     document.LoadFromFile("/content/4288m1hpp1.doc")
+
+#     # Save the DOC file to DOCX format
+#     document.SaveToFile("ToDocx.docx", FileFormat.Docx2016)
+#     # Close the Document object
+#     document.Close()
+#     text = extract_text_from_docx("ToDocx.docx")
+#     os.remove("ToDocx.docx")
+#     return text
+
 
 def extract_text_from_txt(file_path):
     with open(file_path, 'r', encoding='utf-8') as file:
@@ -40,6 +60,8 @@ def parse_resume(file_path):
         return extract_text_from_pdf(file_path)
     elif file_path.endswith('.docx'):
         return extract_text_from_docx(file_path)
+    # elif file_path.endswith('.doc'):
+    #     return extract_text_from_doc(file_path)
     elif file_path.endswith('.txt'):
         return extract_text_from_txt(file_path)
     else:
