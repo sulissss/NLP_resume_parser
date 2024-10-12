@@ -8,27 +8,6 @@ import pytesseract
 # from spire.doc import *
 # from spire.doc.common import *
 
-nlp = spacy.load("en_core_web_sm")
-
-
-# # Regex to extract years
-# def extract_years(text):
-#     match = re.search(r'(\d{4})-(\d{4})', text)
-#     if match:
-#         start_year = int(match.group(1))
-#         end_year = int(match.group(2))
-#         return end_year - start_year
-#     else:
-#         return None
-
-# # Function to extract time periods like 'for X years'
-# def extract_vague_periods(text):
-#     match = re.search(r'for (\d+) years', text)
-#     if match:
-#         return int(match.group(1))
-#     return None
-
-# !pip install docx2txt PyPDF2
 def extract_text_from_pdf(file_path):
     text = ""
     with open(file_path, 'rb') as file:
@@ -83,3 +62,4 @@ def parse_resume(file_path):
         return extract_text_from_txt(file_path)
     else:
         return ""
+    

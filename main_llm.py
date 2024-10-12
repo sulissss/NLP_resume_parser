@@ -51,8 +51,8 @@ def rank_resumes(resume_paths, weights):
     job_description = get_job_description()
     for resume_path in resume_paths:
         resume_text = parse_resume(resume_path)
-        print(f"Resume path: {resume_path}")
-        print(f"Resume Text: {resume_text}")
+        # print(f"Resume path: {resume_path}")
+        # print(f"Resume Text: {resume_text}")
         candidate_data = assess_candidate_fit(job_description, resume_text)
         if candidate_data['is_fit']:
             score = calculate_score(candidate_data, weights)
@@ -64,4 +64,6 @@ def rank_resumes(resume_paths, weights):
     return ranked_resumes
 
 if __name__ == "__main__":
-    pass
+    with open('weights.json', 'r') as f:
+        weights = json.load(f)
+    print(rank_resumes(['uploaded_resumes/RIYAZUDDIN_SHAIKH (1).pdf'], weights))

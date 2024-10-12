@@ -1,7 +1,8 @@
 import streamlit as st
 import os
 from io import BytesIO
-from main_llm import rank_resumes, add_JD_tags, get_job_description  # Assuming these are in your main code
+from main_llm import add_JD_tags, get_job_description  # Assuming these are in your main code
+from main import rank_resumes
 import json
 
 # Local directory to save resumes and JDs
@@ -92,12 +93,13 @@ weights = {
 if st.button("Evaluate Resumes") and uploaded_resume_files:
     # Rank resumes based on the adjusted weights
     st.write("Evaluating resumes...")
-    ranked_resumes = rank_resumes(resume_paths, weights)
+    ranked_resumes = rank_resumes(resume_paths, default_weights)
     
     # Display the results
     st.header("Resume Scores")
     for resume in ranked_resumes:
-        resume_path, is_fit, score_or_reason = resume
+        is_fit = True
+        resume_path, score_or_reason = resume
         st.write(f"Resume: {os.path.basename(resume_path)}")
         if is_fit:
             st.markdown(f"<h2 style='color:green;'>Score: {score_or_reason:.2f}</h2>", unsafe_allow_html=True)
