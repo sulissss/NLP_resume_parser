@@ -4,7 +4,9 @@ import os
 import spacy
 from utils import parse_resume
 from pymongo import MongoClient
-from llm import get_JD_tags_and_reqs, is_fit_screener
+from llm import get_JD_tags_and_reqs, assess_candidate_fit
+from pydantic import BaseModel
+from typing import List
 
 # MongoDB setup
 client = MongoClient("mongodb://localhost:27017/")
@@ -13,6 +15,21 @@ jd_collection = db["job_descriptions"]  # Collection for Job Descriptions
 tags_collection = db["tags"]  # Collection for Tags
 
 nlp = spacy.load("en_core_web_sm")
+
+
+def add_JD_tags_and_reqs(JD_path):
+    JD_text = parse_resume(JD_path)
+    tags_and_reqs = get_JD_tags_and_reqs(JD_text)
+
+    # Add tags to the tags collection uniquely
+    for tag in tags_and_reqs['tags']:
+        if not tags_collection.find_one({"tag": tag}):  # Ensure unique tag
+            tags_collection.insert_one({"tag": tag})
+
+    # Add requirements to the job descriptions collection uniquely
+    if not jd_collection.find_one({"category": "Job Requirements"}):  # Ensure unique requirement
+        jd_collection.insert_one({"category": "Job Requirements", "data": tags_and_reqs['requirements']})
+
 
 def keyword_matching(resume_text, category, keywords, weights):
     matches = 0
@@ -34,7 +51,6 @@ def keyword_matching(resume_text, category, keywords, weights):
                         matches += (1 * weights[category])
                         break
     return matches
-
 
 def calculate_score(resume_text, weights):
     total_score = 0
@@ -64,12 +80,28 @@ def rank_resumes(resume_paths, weights):
     ranked_resumes = []
     for resume_path in resume_paths:
         resume_text = parse_resume(resume_path)
-        score = calculate_score(resume_text, weights)
-        ranked_resumes.append((resume_path, score))
+
+        # Assess candidate fit and generate tags using LLM
+        job_requirements = list(jd_collection.find_one({"category": "Job Requirements"})['data'])  # Define or retrieve the job requirements
+        llm_response = assess_candidate_fit(job_requirements, resume_text)
+
+        # Extract tags from both LLM and resume using NLP
+        llm_tags = set(llm_response['education'] + llm_response['work_experience'] +
+                       llm_response['skills'] + llm_response['certifications'] +
+                       llm_response['projects'] + llm_response['additional_info'])
+
+        # Use Spacy to extract additional NLP tags if necessary
+        nlp_tags = set([token.text.lower() for token in nlp(resume_text) if not token.is_space and not token.is_punct])  # Populate this set with additional NLP tags if required
+
+        # Combine LLM tags and NLP tags uniquely
+        combined_tags = llm_tags.union(nlp_tags)
+
+        # Calculate score based on combined tags if necessary (customize scoring logic if needed)
+        score = calculate_score(" ".join(combined_tags), weights)  # Use combined_tags if needed for scoring logic
+
+        ranked_resumes.append((resume_path, llm_response['is_fit'], score, llm_response['reasoning']))
     return ranked_resumes
 
-def add_JD_tags_and_reqs(JD_path):
-    JD_text = parse_resume(JD_path)
-    tags_and_reqs = get_JD_tags_and_reqs(JD_text)
-    # add tags_and_reqs['tags'] to the tags collection
-    # add tags_and_reqs['requirements'] as a new document in the JD collection
+add_JD_tags_and_reqs('/Users/sulaiman/Downloads/IT Software Engineer JD.docx')
+
+# print(list(jd_collection.find_one({"category": "Education"})['data']))
