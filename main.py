@@ -10,7 +10,7 @@ from llm import get_JD_tags, assess_candidate, resume_or_not
 client = MongoClient("mongodb://localhost:27017/")
 db = client["resume_management"]  # Database
 jd_collection = db["job_descriptions"]  # Collection for Job Descriptions
-tags_collection = db["tags"]  # Collection for Tags
+# tags_collection = db["tags"]  # Collection for Tags
 
 nlp = spacy.load("en_core_web_sm")
 
@@ -50,7 +50,8 @@ def calculate_score(resume_text, weights):
     job_descriptions = get_job_description()
     
     # Iterate through each job description document
-    for category, keywords in job_descriptions.items():
+    for category in weights:
+        keywords = job_descriptions[category]
         # Perform keyword matching for the current category
         keyword_matches = keyword_matching(resume_text, category, keywords, weights)
         max_matches = len(keywords)
@@ -70,8 +71,9 @@ def rank_resumes(resume_paths, weights, JD_check=False, include_fit=False):
         resume_text = parse_resume(resume_path)
         if JD_check:
             if not resume_or_not(resume_text)['is_resume']:
-                print("tis a JD")
                 add_JD_tags(resume_text)
+                ranked_resumes.append((resume_path, "JD file"))
+                continue
         candidate_is_fit = True
         if include_fit:
             job_description = get_job_description()
