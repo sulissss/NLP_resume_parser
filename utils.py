@@ -1,62 +1,45 @@
 import docx2txt
 import PyPDF2
-from pdf2image import convert_from_path
+from pdf2image import convert_from_bytes
 import pytesseract
-# from spire.doc import *
-# from spire.doc.common import *
+from io import BytesIO
 
-def extract_text_from_pdf(file_path):
+def extract_text_from_pdf(file_content):
     text = ""
-    with open(file_path, 'rb') as file:
-        reader = PyPDF2.PdfReader(file)
-        for page in reader.pages:
-            text += page.extract_text()
+    reader = PyPDF2.PdfReader(file_content)
+    for page in reader.pages:
+        text += page.extract_text()
     return text
 
-
-def ocr_pdfs(file_path):
-    pages = convert_from_path(file_path, 300)
-    # If you want to extract text from all pages:
+def ocr_pdfs(file_content):
+    pages = convert_from_bytes(file_content.read(), 300)
     full_text = ""
     for page in pages:
         full_text += pytesseract.image_to_string(page)
 
-    full_text.replace('\n', ' ')
+    full_text = full_text.replace('\n', ' ')
     return full_text
-    # return " ".join([token.text.lower() for token in nlp(full_text) if not token.is_space and not token.is_punct])
-
-def extract_text_from_docx(file_path):
-    return docx2txt.process(file_path)
-
-# def extract_text_from_doc(file_path):
-#     # Create an object of the Document class
-#     document = Document()
-#     # Load a Word DOC file
-#     document.LoadFromFile("/content/4288m1hpp1.doc")
-
-#     # Save the DOC file to DOCX format
-#     document.SaveToFile("ToDocx.docx", FileFormat.Docx2016)
-#     # Close the Document object
-#     document.Close()
-#     text = extract_text_from_docx("ToDocx.docx")
-#     os.remove("ToDocx.docx")
-#     return text
 
 
-def extract_text_from_txt(file_path):
-    with open(file_path, 'r', encoding='utf-8') as file:
-        return file.read()
+def extract_text_from_docx(file_content):
+    return docx2txt.process(BytesIO(file_content.read()))
 
-def parse_resume(file_path):
-    if file_path.endswith('.pdf'):
-        # return extract_text_from_pdf(file_path)
-        return ocr_pdfs(file_path)
-    elif file_path.endswith('.docx'):
-        return extract_text_from_docx(file_path)
-    # elif file_path.endswith('.doc'):
-    #     return extract_text_from_doc(file_path)
-    elif file_path.endswith('.txt'):
-        return extract_text_from_txt(file_path)
+
+def extract_text_from_txt(file_content):
+    return file_content.read().decode('utf-8')
+
+
+def parse_resume(file_content, file_name):
+    """
+    This function processes the in-memory file object and determines which
+    function to call based on the file type (extension).
+    """
+    if file_name.endswith('.pdf'):
+        # return extract_text_from_pdf(file_content)
+        return ocr_pdfs(file_content)
+    elif file_name.endswith('.docx'):
+        return extract_text_from_docx(file_content)
+    elif file_name.endswith('.txt'):
+        return extract_text_from_txt(file_content)
     else:
         return ""
-    

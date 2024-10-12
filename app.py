@@ -1,11 +1,18 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-import os
-import shutil
+from main import rank_resumes, jd_collection, get_job_description, add_JD_tags
+from io import BytesIO
 import json
-from main import rank_resumes, jd_collection
 
-EMPLOYEE_FOLDER = "employees"
+default_weights = {
+    "education": 0.15,
+    "work_experience": 0.30,
+    "skills": 0.25,
+    "certifications": 0.10,
+    "projects": 0.10,
+    "additional_info": 0.10
+}
+
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -19,251 +26,28 @@ def home():
 @app.route('/resumes', methods=['POST'])
 def upload_resumes():
     files = request.files.getlist('resumes')  # Get the list of uploaded files
-    if not os.path.exists(EMPLOYEE_FOLDER):
-        os.makedirs(EMPLOYEE_FOLDER)
-    for file in files:
-        file.save(f"{EMPLOYEE_FOLDER}/{file.filename}")  # Save each uploaded resume
-    return jsonify({"message": "Resumes uploaded successfully!"}), 200
-
-@app.route('/resumes', methods=['DELETE'])
-def delete_resumes():
-    file_names = request.json.get("resumes")
-    for file_name in file_names:
-        total_file_path = f"{EMPLOYEE_FOLDER}/{file_name}"
-        if os.path.exists(total_file_path):
-            os.remove(total_file_path)         
-        else:
-            return jsonify({"error": "File not found!"}), 404
-    return jsonify({"message": "Resumes deleted successfully!"}), 200
-
-@app.route('/resumes/all', methods=['DELETE'])
-def delete_all_resumes():
-    if os.path.exists(EMPLOYEE_FOLDER):
-        shutil.rmtree(EMPLOYEE_FOLDER)  # Remove directory and contents
-    os.makedirs(EMPLOYEE_FOLDER)  # Recreate directory
-    return jsonify({"message": "All Resumes deleted successfully!"}), 200
-
-@app.route('/resumes/scores', methods=['GET'])
-def get_resume_scores():
-    if not os.path.exists(EMPLOYEE_FOLDER):
-        os.makedirs(EMPLOYEE_FOLDER)
-
-    file_paths = [f"{EMPLOYEE_FOLDER}/{file_path}" for file_path in os.listdir(EMPLOYEE_FOLDER)]
-    
-    if not file_paths:
-        return jsonify({"error": "No resumes uploaded"})
-    else:
-        with open('weights.json', 'r') as f:
-            weights = json.load(f)
-
-        return jsonify({"message": rank_resumes(file_paths, weights)})
+    ranked_resumes = rank_resumes(files, default_weights)
+    return jsonify({"message": "Resumes evaluated", "results": ranked_resumes}), 200
 
 # JD Routes
 @app.route('/jd', methods=['POST'])
 def create_job_description():
-    new_job_description = request.json
-    for category, keywords in new_job_description.items():
-        jd_collection.insert_one({"category": category, "data": keywords})
+    files = request.files.getlist('jds')
+    for file in files:
+        add_JD_tags(BytesIO(file.read()))
     return jsonify({"message": "Job descriptions created successfully!"}), 201
 
-@app.route('/jd', methods=['PUT'])
-def update_job_description():
-    updated_job_description = request.json
-    category = updated_job_description.get("category")
-    result = jd_collection.update_one({"category": category}, {"$set": updated_job_description})
-    if result.matched_count:
-        return jsonify({"message": "Job description updated successfully!"}), 200
-    else:
-        return jsonify({"error": "Category not found!"}), 404
+# Other JD routes remain unchanged
 
-@app.route('/jd', methods=['DELETE'])
-def delete_job_description():
-    category = request.json.get("category")
-    result = jd_collection.delete_one({"category": category})
-    if result.deleted_count:
-        return jsonify({"message": "Job description deleted successfully!"}), 200
-    else:
-        return jsonify({"error": "Category not found!"}), 404
-
-@app.route('/jd/all', methods=['GET'])
-def get_job_descriptions():
-    job_descriptions = list(jd_collection.find({}, {"_id": 0}))
-    return jsonify({"JDs": job_descriptions})
-
-@app.route('/jd/all', methods=['DELETE'])
-def delete_all_job_descriptions():
-    jd_collection.delete_many({})
-    return jsonify({"message": "All job descriptions deleted successfully!"}), 200
-
-@app.route('/jd/sub', methods=['POST'])
-def append_jds():
-    request_data = request.json
-    category = request_data.get("category")
-    new_jds = request_data.get("jds")
-
-    jd_entry = jd_collection.find_one({"category": category})
-
-    if jd_entry:
-        existing_jds = jd_entry["data"]
-        for jd in new_jds:
-            if jd not in existing_jds:
-                existing_jds.append(jd)
-
-        jd_collection.update_one(
-            {"category": category},
-            {"$set": {"data": existing_jds}}
-        )
-        return jsonify({"message": "JDs appended successfully!"}), 200
-    else:
-        return jsonify({"error": "Category not found!"}), 404
-
-@app.route('/jd/sub', methods=['DELETE'])
-def remove_jds():
-    request_data = request.json
-    category = request_data.get("category")
-    jds_to_remove = request_data.get("jds")
-
-    jd_entry = jd_collection.find_one({"category": category})
-
-    if jd_entry:
-        existing_jds = jd_entry["data"]
-        for jd in jds_to_remove:
-            if jd in existing_jds:
-                existing_jds.remove(jd)
-
-        jd_collection.update_one(
-            {"category": category},
-            {"$set": {"data": existing_jds}}
-        )
-        return jsonify({"message": "JDs removed successfully!"}), 200
-    else:
-        return jsonify({"error": "Category not found!"}), 404
-
-@app.route('/jd/<string:category>', methods=['GET'])
-def get_job_description_by_category(category):
-    jd_entry = jd_collection.find_one({"category": category}, {"_id": 0})
-    if jd_entry:
-        return jsonify(jd_entry), 200
-    else:
-        return jsonify({"error": "Category not found!"}), 404
+# Example route to retrieve resume scores
+@app.route('/resumes/scores', methods=['POST'])
+def get_resume_scores():
+    files = request.files.getlist('resumes')
+    with open('weights.json', 'r') as f:
+        weights = json.load(f)
     
-# Weights Routes
-@app.route('/weights', methods=['POST'])
-def set_weights():
-    weights_data = request.json
-    with open('weights.json', 'w') as f:
-        json.dump(weights_data, f)
-    return jsonify({"message": "Weights set successfully!"}), 200
-
-@app.route('/weights', methods=['GET'])
-def get_weights():
-    if os.path.exists('weights.json'):
-        with open('weights.json', 'r') as f:
-            weights = json.load(f)
-        return jsonify(weights), 200
-    else:
-        return jsonify({"error": "Weights file not found!"}), 404
-
-
-# # Tag Routes
-# @app.route('/tags', methods=['POST'])
-# def create_tags():
-#     new_tag = request.json
-#     for category, tags in new_tag.items():
-#         tags_collection.insert_one({"category": category, "data": tags})
-#     return jsonify({"message": "Tags added successfully"}), 201
-
-# @app.route('/tags', methods=['PUT'])
-# def update_tag():
-#     updated_tag = request.json
-#     old_tag = updated_tag.get("filter")
-#     new_tag_data = updated_tag.get("update")
-#     result = tags_collection.update_one(old_tag, {"$set": new_tag_data})
-#     if result.matched_count:
-#         return jsonify({"message": "Tag updated successfully!"}), 200
-#     else:
-#         return jsonify({"error": "Tag not found!"}), 404
-
-# @app.route('/tags', methods=['DELETE'])
-# def delete_tag():
-#     tag_name = request.json.get("tag_name")
-#     result = tags_collection.delete_one({"category": tag_name})  # Use "category" based on your structure
-#     if result.deleted_count:
-#         return jsonify({"message": "Tag deleted successfully!"}), 200
-#     else:
-#         return jsonify({"error": "Tag not found!"}), 404
-
-# @app.route('/tags/all', methods=['GET'])
-# def get_tags():
-#     tags = list(tags_collection.find({}, {"_id": 0}))
-#     return jsonify({"tags": tags})
-
-# @app.route('/tags/all', methods=['DELETE'])
-# def delete_all_tags():
-#     tags_collection.delete_many({})
-#     return jsonify({"message": "All tags deleted successfully!"}), 200
-
-# @app.route('/tags/<string:category>', methods=['GET'])
-# def get_tag_by_category(category):
-#     tag_entry = tags_collection.find_one({"category": category}, {"_id": 0})
-#     if tag_entry:
-#         return jsonify(tag_entry), 200
-#     else:
-#         return jsonify({"error": "Category not found!"}), 404
-
-# @app.route('/tags/sub', methods=['POST'])
-# def append_tags():
-#     request_data = request.json
-#     category = request_data.get("category")
-#     subcategory = request_data.get("subcategory")
-#     new_tags = request_data.get("tags")
-
-#     tag_entry = tags_collection.find_one({"category": category})
-
-#     if tag_entry:
-#         if subcategory in tag_entry["data"]:
-#             existing_tags = tag_entry["data"][subcategory]
-#             for tag in new_tags:
-#                 if tag not in existing_tags:
-#                     existing_tags.append(tag)
-
-#             tags_collection.update_one(
-#                 {"category": category},
-#                 {"$set": {f"data.{subcategory}": existing_tags}}
-#             )
-#             return jsonify({"message": "Tags appended successfully!"}), 200
-#         else:
-#             return jsonify({"error": "Subcategory not found!"}), 404
-#     else:
-#         return jsonify({"error": "Category not found!"}), 404
-
-# @app.route('/tags/sub', methods=['DELETE'])
-# def remove_tags():
-#     request_data = request.json
-#     category = request_data.get("category")
-#     subcategory = request_data.get("subcategory")
-#     tags_to_remove = request_data.get("tags")
-
-#     tag_entry = tags_collection.find_one({"category": category})
-
-#     if tag_entry:
-#         if subcategory in tag_entry["data"]:
-#             existing_tags = tag_entry["data"][subcategory]
-#             for tag in tags_to_remove:
-#                 if tag in existing_tags:
-#                     existing_tags.remove(tag)
-
-#             tags_collection.update_one(
-#                 {"category": category},
-#                 {"$set": {f"data.{subcategory}": existing_tags}}
-#             )
-#             return jsonify({"message": "Tags removed successfully!"}), 200
-#         else:
-#             return jsonify({"error": "Subcategory not found!"}), 404
-#     else:
-#         return jsonify({"error": "Category not found!"}), 404
-
-
+    ranked_resumes = rank_resumes(files, weights)
+    return jsonify({"message": "Resume scores retrieved", "results": ranked_resumes}), 200
 
 if __name__ == '__main__':
     app.run(port=5001, debug=True)

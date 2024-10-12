@@ -1,8 +1,9 @@
 import json
 import re
 import os
-from dotenv import load_dotenv
 import spacy
+from dotenv import load_dotenv
+from io import BytesIO
 from pymongo import MongoClient
 from utils import parse_resume
 from llm import get_JD_tags, assess_candidate, resume_or_not
@@ -49,14 +50,18 @@ def calculate_score(resume_text, weights):
 
     return total_score  # Return total score without normalization
 
-def rank_resumes(resume_paths, weights, JD_check=False, include_fit=False):
+
+def rank_resumes(resume_files, weights, JD_check=False, include_fit=False):
+    """
+    Modify rank_resumes to work with in-memory files.
+    """
     ranked_resumes = []
-    for resume_path in resume_paths:
-        resume_text = parse_resume(resume_path)
+    for resume_file in resume_files:
+        resume_text = parse_resume(BytesIO(resume_file.read()), resume_file.filename)
         if JD_check:
             if not resume_or_not(resume_text)['is_resume']:
                 add_JD_tags(resume_text)
-                ranked_resumes.append((resume_path, "JD file"))
+                ranked_resumes.append((resume_file.filename, "JD file"))
                 continue
         candidate_is_fit = True
         if include_fit:
@@ -65,23 +70,8 @@ def rank_resumes(resume_paths, weights, JD_check=False, include_fit=False):
             candidate_is_fit = inferenced_resume['is_fit']
         if candidate_is_fit:
             score = calculate_score(resume_text, weights)
-            ranked_resumes.append((resume_path, score))
+            ranked_resumes.append((resume_file.filename, score))
         else:
-            ranked_resumes.append((resume_path, inferenced_resume['reasoning']))
+            ranked_resumes.append((resume_file.filename, inferenced_resume['reasoning']))
 
     return ranked_resumes
-
-default_weights = {
-    "education": 0.15,
-    "work_experience": 0.30,
-    "skills": 0.25,
-    "certifications": 0.10,
-    "projects": 0.10,
-    "additional_info": 0.10
-}
-
-# print(get_job_description())
-
-# Example usage
-# print(rank_resumes(['/Users/sulaiman/Downloads/Gokul_Raj (1).pdf', '/Users/sulaiman/Downloads/RIYAZUDDIN_SHAIKH (1).pdf'], default_weights))
-# print(rank_resumes(['/Applications/Documents/Tags, Ranking and Sample CVs/Sample CVs/Muhammed_Favas_AK.pdf'], default_weights))
