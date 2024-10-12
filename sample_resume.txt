@@ -1,0 +1,59 @@
+Dedicated and skilled software developer with a Bachelor’s degree in Computer Science and over two years of experience in the IT software industry. A self-starter with a positive attitude, seeking a mid-level position in a dynamic environment where I can apply my skills in .NET development and contribute to team success.
+
+Education
+
+Bachelor of Science in Computer Science
+[Your University Name], [City, Country]
+Graduated: [Month, Year]
+
+Work Experience
+
+Software Developer
+[Your Previous Company Name], [City, Country]
+[Month, Year] – Present
+
+	•	Developed and maintained web applications using ASP.NET and SQL Server, enhancing performance and user experience.
+	•	Collaborated with cross-functional teams to troubleshoot issues, ensuring timely delivery of software solutions.
+	•	Utilized HTML5, CSS3, and JavaScript to create responsive user interfaces, leading to improved user engagement.
+
+Intern Software Developer
+[Your Internship Company Name], [City, Country]
+[Month, Year] – [Month, Year]
+
+	•	Assisted in the development of RESTful APIs for various applications, gaining practical experience in software development lifecycle.
+	•	Participated in daily stand-ups and sprint planning sessions to understand project requirements and deliverables.
+	•	Gained exposure to RPC and backend services, enhancing overall technical skills.
+
+Skills
+
+	•	Technical Skills: .NET, ASP.NET, SQL Server, HTML5, CSS3, JavaScript, REST, RPC, C#
+	•	Soft Skills: Troubleshooting, Written Communication, Good Communication Skills
+
+Projects
+
+Web Application Development Project
+
+	•	Led a team to develop a web-based inventory management system using ASP.NET, improving data accessibility for the client.
+	•	Implemented a user-friendly interface that increased client satisfaction and reduced data retrieval time by 30%.
+
+Certifications
+
+	•	Development Certifications in ASP.NET and SQL Server from [Certification Authority/Institute Name]
+	•	Relevant work experience includes full-stack development in various projects.
+
+Additional Information
+
+	•	Self-Starter: Demonstrated ability to work independently with minimal supervision.
+	•	Positive Attitude: Maintains a positive outlook and encourages team collaboration.
+	•	Adaptability: Flexible with rapidly changing priorities in fast-paced environments.
+	•	Job Preferences: Seeking a full-time onsite position with a focus on software development.
+
+Job Requirements
+
+	•	Job Location: Sharjah, UAE
+	•	Job Type: Full-Time / Onsite
+	•	Level: Mid-Level
+	•	Company Industry: IT Software
+	•	Minimum Experience: 2 Years
+
+References available upon request.
