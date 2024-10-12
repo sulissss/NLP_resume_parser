@@ -1,8 +1,5 @@
-import re
 import docx2txt
 import PyPDF2
-import os
-import spacy
 from pdf2image import convert_from_path
 import pytesseract
 # from spire.doc import *

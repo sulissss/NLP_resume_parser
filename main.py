@@ -4,7 +4,7 @@ import os
 import spacy
 from utils import parse_resume
 from pymongo import MongoClient
-from llm import get_JD_tags, assess_candidate
+from llm import get_JD_tags, assess_candidate, resume_or_not
 
 # MongoDB setup
 client = MongoClient("mongodb://localhost:27017/")
@@ -18,11 +18,9 @@ def get_job_description():
     jd_docs = list(jd_collection.find({}))
     return {doc['category']: doc['data'] for doc in jd_docs}
 
-def add_JD_tags(JD_path):
-    JD_text = parse_resume(JD_path)
+def add_JD_tags(JD_text):
     tags_and_reqs = get_JD_tags(JD_text)
 
-    # print(tags_and_reqs)
     # Add tags to the tags collection uniquely
     for category, tags in tags_and_reqs.items():
         # print(category, "->", tags)
@@ -66,24 +64,21 @@ def calculate_score(resume_text, weights):
     normalized_total_score = (total_score / total_weight) * 100  # To get a percentage value
     return normalized_total_score
 
-def rank_resumes(resume_paths, weights):
+def rank_resumes(resume_paths, weights, JD_check=False, include_fit=False):
     ranked_resumes = []
     for resume_path in resume_paths:
         resume_text = parse_resume(resume_path)
-        job_description = get_job_description()
-        inferenced_resume = assess_candidate(job_description, resume_text)
-        if inferenced_resume['is_fit']:
-            added_string = resume_text.split() + inferenced_resume['tags']
-            print(" ".join(added_string))
-            final_string = []
-            for c in added_string:
-                if c not in final_string:
-                    final_string.append(c)
-            final_string = " ".join(final_string)
-            # resume_text = " ".join(list(set((" ".join(inferenced_resume['tags']) + resume_text).split())))
-            print("\n\n\n-------------------\n\n\n")
-            print(final_string)
-            score = calculate_score(final_string, weights)
+        if JD_check:
+            if not resume_or_not(resume_text)['is_resume']:
+                print("tis a JD")
+                add_JD_tags(resume_text)
+        candidate_is_fit = True
+        if include_fit:
+            job_description = get_job_description()
+            inferenced_resume = assess_candidate(job_description, resume_text)
+            candidate_is_fit = inferenced_resume['is_fit']
+        if candidate_is_fit:
+            score = calculate_score(resume_text, weights)
             ranked_resumes.append((resume_path, score))
         else:
             ranked_resumes.append((resume_path, inferenced_resume['reasoning']))
@@ -99,4 +94,4 @@ default_weights = {
     "additional_info": 0.10
 }
 
-print(rank_resumes(['/Users/sulaiman/Downloads/Gokul_Raj (1).pdf'], default_weights))
+print(rank_resumes(['/Users/sulaiman/Downloads/IT Software Engineer JD.docx', '/Users/sulaiman/Downloads/Gokul_Raj (1).pdf', '/Users/sulaiman/Downloads/RIYAZUDDIN_SHAIKH (1).pdf'], default_weights, JD_check=True))
