@@ -4,7 +4,7 @@ import os
 import spacy
 from utils import parse_resume
 from pymongo import MongoClient
-from llm import get_JD_tags_and_reqs, assess_candidate_fit
+from llm import get_JD_tags, assess_candidate_fit
 from pydantic import BaseModel
 from typing import List
 
@@ -18,7 +18,7 @@ nlp = spacy.load("en_core_web_sm")
 
 def add_JD_tags_and_reqs(JD_path):
     JD_text = parse_resume(JD_path)
-    tags_and_reqs = get_JD_tags_and_reqs(JD_text)
+    tags_and_reqs = get_JD_tags(JD_text)
 
 
     print(tags_and_reqs)
@@ -103,8 +103,6 @@ def rank_resumes(resume_paths, weights):
 
         ranked_resumes.append((resume_path, llm_response['is_fit'], score, llm_response['reasoning']))
     return ranked_resumes
-
-add_JD_tags_and_reqs('/Users/sulaiman/Downloads/IT Software Engineer JD.docx')
 
 # print(list(jd_collection.find_one({"category": "Education"})['data']))
 
