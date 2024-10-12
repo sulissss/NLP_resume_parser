@@ -87,13 +87,16 @@ def rank_resumes(resume_paths, weights, JD_check=False, include_fit=False):
 
     return ranked_resumes
 
-default_weights = {
-    "education": 0.15,
-    "work_experience": 0.30,
-    "skills": 0.25,
-    "certifications": 0.10,
-    "projects": 0.10,
-    "additional_info": 0.10
-}
+# default_weights = {
+#     "education": 0.15,
+#     "work_experience": 0.30,
+#     "skills": 0.25,
+#     "certifications": 0.10,
+#     "projects": 0.10,
+#     "additional_info": 0.10
+# }
 
-print(rank_resumes(['/Users/sulaiman/Downloads/IT Software Engineer JD.docx', '/Users/sulaiman/Downloads/Gokul_Raj (1).pdf', '/Users/sulaiman/Downloads/RIYAZUDDIN_SHAIKH (1).pdf'], default_weights, JD_check=True))
+# print(rank_resumes(['/Users/sulaiman/Downloads/IT Software Engineer JD.docx', '/Users/sulaiman/Downloads/Gokul_Raj (1).pdf', '/Users/sulaiman/Downloads/RIYAZUDDIN_SHAIKH (1).pdf'], default_weights, JD_check=True))
+
+if __name__ == "__main__":
+    pass

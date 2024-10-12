@@ -3,7 +3,7 @@ from flask_cors import CORS
 import os
 import shutil
 import json
-from main import rank_resumes, jd_collection, tags_collection
+from main import rank_resumes, jd_collection
 
 EMPLOYEE_FOLDER = "employees"
 
