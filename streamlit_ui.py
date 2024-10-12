@@ -110,7 +110,7 @@ weights = {
 if st.button("Evaluate Resumes and JDs") and uploaded_resume_files:
     # Rank resumes based on the adjusted weights
     st.write("Evaluating Resumes and JDs...")
-    ranked_resumes = rank_resumes(resume_paths, default_weights, JD_check=True)
+    ranked_resumes = rank_resumes(resume_paths, default_weights)
     
     # Display the results
     st.header("Resume Scores")
