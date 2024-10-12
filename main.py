@@ -16,19 +16,21 @@ tags_collection = db["tags"]  # Collection for Tags
 
 nlp = spacy.load("en_core_web_sm")
 
-
 def add_JD_tags_and_reqs(JD_path):
     JD_text = parse_resume(JD_path)
     tags_and_reqs = get_JD_tags_and_reqs(JD_text)
 
-    # Add tags to the tags collection uniquely
-    for tag in tags_and_reqs['tags']:
-        if not tags_collection.find_one({"tag": tag}):  # Ensure unique tag
-            tags_collection.insert_one({"tag": tag})
 
-    # Add requirements to the job descriptions collection uniquely
-    if not jd_collection.find_one({"category": "Job Requirements"}):  # Ensure unique requirement
-        jd_collection.insert_one({"category": "Job Requirements", "data": tags_and_reqs['requirements']})
+    print(tags_and_reqs)
+    # Add tags to the tags collection uniquely
+    for category, tags in tags_and_reqs.items():
+        # print(category, "->", tags)
+        modified_tags = [tag.lower().replace('_', ' ') for tag in tags]
+        jd_collection.update_one(
+            {"category": category},  # Ensure correct category
+            {"$addToSet": {"data": {"$each": modified_tags}}},  # Add tags only if they are not already present
+            upsert=True  # Insert new category if it doesn't exist
+        )
 
 
 def keyword_matching(resume_text, category, keywords, weights):
@@ -105,3 +107,5 @@ def rank_resumes(resume_paths, weights):
 add_JD_tags_and_reqs('/Users/sulaiman/Downloads/IT Software Engineer JD.docx')
 
 # print(list(jd_collection.find_one({"category": "Education"})['data']))
+
+# jd_collection.delete_many({})

@@ -5,8 +5,13 @@ import instructor
 import json
 
 class JobDescription(BaseModel):
-    tags: List[str]
-    requirements: List[str]
+    education: List[str]
+    work_experience: List[str]
+    skills: List[str]
+    projects: List[str]
+    certifications: List[str]
+    additional_info: List[str]
+    job_requirements: List[str]
 
 # class LLMScreener(BaseModel):
 #     is_fit: bool
@@ -33,13 +38,26 @@ client = instructor.from_openai(OpenAI(
 
 def get_JD_tags_and_reqs(JD_text):
     return json.loads(
-                client.chat.completions.create(
-                    model="llama3",
-                    max_retries=3,
-                    messages=[{"role": "system", "content": f"You are part of an NLP resume screener. You need to generate tags, i.e. important keywords from the following Job Description that would be matched with resumes to evaluate a score. Furthermore, you also need to list the requirements for the job (requirements which are strict). Job description: {JD_text}"}],
-                    response_model=JobDescription
-                ).model_dump_json(indent=2)
-            ) 
+            client.chat.completions.create(
+                model="llama3",
+                max_retries=3,
+                messages=[{
+                    "role": "system", 
+                    "content": (
+                        f"You are a part of an NLP resume screener. Divide your task into two."
+                        f" First, extract keywords from the following Job Description and categorize them as"
+                        f" Education, Work Experience, Skills, Certifications, Work Projects, and Additional Info."
+                        f" STRICTLY ensure that ALL keywords are a maximum of TWO words. Avoid phrases, avoid stopwords, keep it concise."
+                        f" For example, instead of 'excellent troubleshooting skills', use 'troubleshooting'."
+                        f" Also ensure to separate compound keywords ONLY WHERE NECESSARY, e.g., 'html5/css3/javascript' becomes 'html5', 'css3', 'javascript'."
+                        f" Second, list the strict requirements for the job, including minimum experience."
+                        f" Leave any field blank if no data is available."
+                        f" Job description: {JD_text}"
+                    )
+                }],
+                response_model=JobDescription
+            ).model_dump_json(indent=4)
+        )
 
 # def is_fit_screener(job_reqs, resume_text):
 #     return json.loads(
