@@ -1,13 +1,16 @@
 import json
 import re
 import os
+from dotenv import load_dotenv
 import spacy
-from utils import parse_resume
 from pymongo import MongoClient
+from utils import parse_resume
 from llm import get_JD_tags, assess_candidate, resume_or_not
 
+load_dotenv('mongo.env')
+
 # MongoDB setup
-client = MongoClient("mongodb://localhost:27017/")
+client = MongoClient(os.getenv('MONGODB_URI'))
 db = client["resume_management"]  # Database
 jd_collection = db["job_descriptions"]  # Collection for Job Descriptions
 
@@ -76,6 +79,8 @@ default_weights = {
     "projects": 0.10,
     "additional_info": 0.10
 }
+
+# print(get_job_description())
 
 # Example usage
 # print(rank_resumes(['/Users/sulaiman/Downloads/Gokul_Raj (1).pdf', '/Users/sulaiman/Downloads/RIYAZUDDIN_SHAIKH (1).pdf'], default_weights))
